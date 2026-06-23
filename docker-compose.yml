@@ -31,7 +31,7 @@ services:
   prometheus:
     image: prom/prometheus:v2.45.0
     container_name: prometheus_monitor
-    user: "root" 
+    user: "root"
     ports:
       - "9090:9090"
     volumes:
@@ -46,8 +46,14 @@ services:
     image: grafana/grafana:10.0.0
     container_name: grafana_dashboard
     ports:
-      - "3000:3000" # Porta padrão de acesso ao Grafana
+      - "3000:3000"
     networks:
       - korp_network
     depends_on:
       - prometheus
+    volumes:
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana/provisioning/dashboards:/var/lib/grafana/dashboards
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
