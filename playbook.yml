@@ -1,0 +1,47 @@
+- name: "Provisionamento Completo do Ambiente Korp"
+  hosts: all
+  vars:
+    project_path: "{{ playbook_dir }}"
+
+  tasks:
+    # 1. Instalar Docker (caso não esteja instalado)
+    - name: "Instalar dependências do Docker"
+      apt:
+        name:
+          - docker.io
+          - docker-compose-v2
+        state: present
+        update_cache: yes
+      become: true
+      ignore_errors: true  # No WSL pode já estar disponível via Docker Desktop
+
+    # 2. Build da imagem
+    - name: "Fazer o Build da imagem do serviço http-server-projeto-korp"
+      shell: docker build -t http-server-projeto-korp "{{ project_path }}"
+      args:
+        chdir: "{{ project_path }}"
+
+    # 3. Subir os containers
+    - name: "Subir a infraestrutura completa via Docker Compose"
+      shell: docker compose up -d
+      args:
+        chdir: "{{ project_path }}"
+
+    # 4. Aguardar estabilização
+    - name: "Aguardar 5 segundos para estabilização dos serviços"
+      pause:
+        seconds: 5
+
+    # 5. Validar funcionamento
+    - name: "Validar o funcionamento do serviço através de uma requisição HTTP"
+      uri:
+        url: "http://localhost:80/projeto-korp"
+        method: GET
+        return_content: yes
+        status_code: 200
+      register: http_response
+
+    # 6. Exibir resposta
+    - name: "Exibir a resposta do servidor no console"
+      debug:
+        msg: "Resposta do JSON recebida com sucesso: {{ http_response.content }}"

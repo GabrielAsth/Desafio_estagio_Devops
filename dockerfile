@@ -3,7 +3,7 @@ FROM golang:1.26-alpine AS builder
 
 WORKDIR /app
 
-# Copia absolutamente tudo o que já foi baixado localmente
+# Copia tudo o que já foi baixado localmente
 COPY . .
 
 # Compila direto o binário estático
